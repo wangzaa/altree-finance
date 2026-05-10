@@ -1,0 +1,44 @@
+{
+  "income_statement": [
+    {
+      "period_ending": "2024-09-28",
+      "fiscal_year": 2024,
+      "fiscal_period": "FY",
+      "total_revenue": 391035000000,
+      "gross_profit": 180683000000,
+      "operating_income": 123216000000,
+      "ebitda": 134661000000,
+      "net_income": 93736000000
+    },
+    {
+      "period_ending": "2023-09-30",
+      "fiscal_year": 2023,
+      "fiscal_period": "FY",
+      "total_revenue": 383285000000,
+      "gross_profit": 169148000000,
+      "operating_income": 114301000000,
+      "ebitda": 125820000000,
+      "net_income": 96995000000
+    }
+  ],
+  "balance_sheet": [
+    {
+      "period_ending": "2024-09-28",
+      "fiscal_year": 2024,
+      "total_assets": 364980000000,
+      "total_liabilities": 308030000000,
+      "total_equity": 56950000000,
+      "cash_and_equivalents": 29943000000,
+      "total_debt": 106629000000
+    }
+  ],
+  "cash_flow": [
+    {
+      "period_ending": "2024-09-28",
+      "fiscal_year": 2024,
+      "operating_cash_flow": 118254000000,
+      "capital_expenditures": -9447000000,
+      "free_cash_flow": 108807000000
+    }
+  ]
+}
