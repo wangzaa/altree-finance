@@ -33,6 +33,12 @@ For comp sets: each peer ticker also has its own `./data/<PEER_DIR>/summary.json
 populated by `python tools/fetch.py <PRIMARY> --peers PEER1,PEER2,...` ahead of
 running this skill.
 
+## ⚠️ Excel formatting
+
+Read `FORMATTING_CONVENTIONS.md` at the plugin root. Default font is
+**Arial 10pt** for every cell — this overrides upstream's Times New Roman
+"Suggested Font & Typography" defaults.
+
 ---
 
 ## Overview
@@ -125,10 +131,10 @@ Row 3: As of [Period] | All figures in [USD Millions/Billions] except per-share 
 3. Company/team style guides
 4. These defaults (only if no other guidance provided)
 
-**Suggested Font & Typography:**
-- **Font family**: Times New Roman (professional, readable, industry standard)
-- **Font size**: 11pt for data cells, 12pt for headers
-- **Bold text**: Section headers, company names, statistic labels
+**Font & Typography (fork default — see `FORMATTING_CONVENTIONS.md`):**
+- **Font family**: Arial (overrides upstream's Times New Roman)
+- **Font size**: 10pt for everything (data cells AND headers)
+- **Bold text**: Section headers, company names, statistic labels — emphasis via bold + fill colour, not larger size
 
 **Default Color & Shading — Professional Blue/Grey Palette (minimal is better):**
 - **Keep it restrained** — only blues and greys. Do NOT introduce greens, oranges, reds, or multiple accent colors. A clean comps sheet uses 3-4 colors total.

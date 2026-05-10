@@ -14,6 +14,12 @@ the pre-fetched cache at `./data/<TICKER_DIR>/summary.json`. MCP servers are
 intentionally not configured in this fork. Do not use web search for
 fundamentals.
 
+## ⚠️ Excel formatting
+
+Read `FORMATTING_CONVENTIONS.md` at the plugin root. When the user uploads
+a template, preserve the template's existing fonts and sizes. When
+generating a fresh model from scratch, default to **Arial 10pt**.
+
 ---
 
 ## ⚠️ CRITICAL PRINCIPLES — Read Before Populating Any Template

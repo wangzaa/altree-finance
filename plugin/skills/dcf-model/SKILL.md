@@ -17,6 +17,13 @@ pre-fetched cache at `./data/<TICKER_DIR>/summary.json` (canonical) and
 are intentionally not configured in this fork. Do not use web search for
 fundamentals.
 
+## Excel formatting
+
+Read `FORMATTING_CONVENTIONS.md` at the plugin root. Default font is
+**Arial 10pt** for every cell. Apply `Font(name="Arial", size=10, ...)` to
+every `Font(...)` constructor — openpyxl's library default (Calibri 11pt)
+is NOT acceptable.
+
 ## Critical Constraints - Read These First
 
 These constraints apply throughout all DCF model building. Review before starting:

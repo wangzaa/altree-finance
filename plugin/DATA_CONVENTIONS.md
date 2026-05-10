@@ -41,6 +41,12 @@ For comp sets or models spanning multiple currencies, use FX rates from
 1 JPY ≈ 0.0064 USD). Convert non-USD figures to USD by multiplying by the
 appropriate rate.
 
+## Excel output formatting
+
+See `FORMATTING_CONVENTIONS.md` (sibling document) for the fork-wide font
+and palette rules — short version: **Arial 10pt** on every cell, with the
+existing blue/black/green color convention for inputs/formulas/links.
+
 ## What this fork does NOT cover (acknowledge in user-facing output)
 
 - US 10-K/10-Q filings (EDGAR is out of scope)

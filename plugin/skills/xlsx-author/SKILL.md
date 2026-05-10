@@ -22,15 +22,18 @@ from openpyxl.styles import Font, PatternFill
 
 wb = Workbook()
 ws = wb.active; ws.title = "Inputs"
-ws["B2"] = "Revenue"; ws["C2"] = 1_250_000_000
-ws["C2"].font = Font(color="0000FF")           # blue = hardcoded input
+ws["B2"] = "Revenue"; ws["B2"].font = Font(name="Arial", size=10)
+ws["C2"] = 1_250_000_000
+ws["C2"].font = Font(name="Arial", size=10, color="0000FF")   # blue = hardcoded input
 calc = wb.create_sheet("DCF")
-calc["C5"] = "=Inputs!C2*(1+Inputs!C3)"        # black = formula
+calc["C5"] = "=Inputs!C2*(1+Inputs!C3)"
+calc["C5"].font = Font(name="Arial", size=10)                 # black = formula
 wb.save("./out/model.xlsx")
 ```
 
 ## Conventions (mirror `audit-xls`)
 
+- **Default font: Arial 10pt** — see `FORMATTING_CONVENTIONS.md` at the plugin root. Apply `Font(name="Arial", size=10, ...)` to every cell you write; openpyxl's library default (Calibri 11pt) is NOT acceptable for this fork.
 - **Blue / black / green.** Blue = hardcoded input, black = formula, green = link to another sheet/file.
 - **No hardcodes in calc cells.** Every calculation cell is a formula; every input lives on an Inputs tab.
 - **Named ranges** for any value referenced from a deck or memo.
