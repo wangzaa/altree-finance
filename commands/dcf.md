@@ -5,6 +5,14 @@ argument-hint: "[company name or ticker]"
 
 # DCF Valuation Command
 
+**Pre-flight (this fork uses a local cache):** Verify
+`./data/<TICKER_DIR>/summary.json` exists and `fetched_at.txt` is < 24h
+old. If missing or stale, instruct the user to run
+`python tools/fetch.py <TICKER>` and stop until they confirm. See
+`DATA_CONVENTIONS.md` for full data-policy details.
+
+---
+
 Build an institutional-quality DCF model that uses comparable company analysis to inform valuation ranges.
 
 ## Workflow

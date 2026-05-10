@@ -5,6 +5,15 @@ argument-hint: "[company name or ticker]"
 
 # Comparable Company Analysis Command
 
+**Pre-flight (this fork uses a local cache):** Verify
+`./data/<TICKER_DIR>/summary.json` exists for the primary ticker AND every
+peer, and that each `fetched_at.txt` is < 24h old. If missing or stale,
+instruct the user to run
+`python tools/fetch.py <PRIMARY> --peers PEER1,PEER2,PEER3` and stop until
+they confirm. See `DATA_CONVENTIONS.md` for full data-policy details.
+
+---
+
 Build an institutional-grade comparable company analysis with operating metrics, valuation multiples, and statistical benchmarking.
 
 ## Workflow
