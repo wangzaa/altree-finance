@@ -1,10 +1,13 @@
 {
   "name": "altree-finance",
-  "description": "Single-plugin marketplace for the open-source-data fork of financial-analysis.",
+  "owner": {
+    "name": "andrew@altree.co"
+  },
   "plugins": [
     {
       "name": "altree-finance",
-      "source": "."
+      "source": "./plugin",
+      "description": "Open-source-data fork of financial-analysis: DCF, comps, 3-statement model, competitive analysis driven by OpenBB + yfinance + a local cache. Global ticker coverage. No paid MCPs."
     }
   ]
 }
