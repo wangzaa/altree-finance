@@ -7,6 +7,21 @@ description: Framework for building competitive landscape decks — market posit
 
 Build a complete competitive analysis deck. This is a two-phase process: gather requirements and get outline approval first, then build.
 
+## Data sources (READ FIRST)
+
+Read `DATA_CONVENTIONS.md` at the plugin root. Company narrative,
+fundamentals, sector/industry classification, and macro context all come
+from `./data/<TICKER_DIR>/summary.json` and `./data/_shared/`. The
+qualitative depth is thinner than upstream because EDGAR 10-K MD&A is
+out of scope; lean on `summary.json.company.description_short` plus
+`./data/<TICKER_DIR>/raw/wikipedia_summary.json` if present.
+
+MCP servers are intentionally not configured in this fork. Do not use
+web search for fundamental data. (Web search MAY be used for qualitative
+context like recent industry trends, but with citations.)
+
+---
+
 ## Environment check
 
 This skill works in both the PowerPoint add-in and chat. Identify which you're in before starting — the mechanics differ, the workflow doesn't:

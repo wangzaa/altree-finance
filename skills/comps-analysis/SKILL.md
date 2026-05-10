@@ -23,14 +23,15 @@ description: |
 
 ## ⚠️ CRITICAL: Data Source Priority (READ FIRST)
 
-**ALWAYS follow this data source hierarchy:**
+Read `DATA_CONVENTIONS.md` at the plugin root. All inputs come from the
+pre-fetched cache at `./data/<TICKER_DIR>/summary.json` (canonical) and
+`./data/<TICKER_DIR>/raw/` (vendor-native, for verification). MCP servers
+are intentionally not configured in this fork. Do not use web search for
+fundamentals.
 
-1. **FIRST: Check for MCP data sources** - If S&P Kensho MCP, FactSet MCP, or Daloopa MCP are available, use them exclusively for financial and trading information
-2. **DO NOT use web search** if the above MCP data sources are available
-3. **ONLY if MCPs are unavailable:** Then use Bloomberg Terminal, SEC EDGAR filings, or other institutional sources
-4. **NEVER use web search as a primary data source** - it lacks the accuracy, audit trails, and reliability required for institutional-grade analysis
-
-**Why this matters:** MCP sources provide verified, institutional-grade data with proper citations. Web search results can be outdated, inaccurate, or unreliable for financial analysis.
+For comp sets: each peer ticker also has its own `./data/<PEER_DIR>/summary.json`
+populated by `python tools/fetch.py <PRIMARY> --peers PEER1,PEER2,...` ahead of
+running this skill.
 
 ---
 
@@ -269,10 +270,9 @@ Same structure as operating section: Max, 75th, Median, 25th, Min for every metr
 ### Required Components
 
 **Data Sources & Quality:**
-- Where did the data come from? (S&P Kensho MCP, FactSet MCP, Daloopa MCP, Bloomberg, SEC filings)
-- What period does it cover? (Q4 2024, audited figures)
-- How was it verified? (Cross-checked against 10-K/10-Q)
-- Note: Prioritize MCP data sources (S&P Kensho, FactSet, Daloopa) if available for better accuracy and traceability
+- Where did the data come from? Use the `source` strings from `summary.json` verbatim (e.g. "yfinance via OpenBB 2026-05-10", "OpenBB Federal Reserve 10Y 2026-05-07")
+- What period does it cover? (e.g., FY2024, ending date as in `summary.json.incomeStatement.periods[*].endDate`)
+- How was it verified? Cross-check against the company's annual report PDF when a number looks off; raw OpenBB outputs in `./data/<TICKER_DIR>/raw/` are preserved for audit.
 
 **Key Definitions:**
 - EBITDA calculation method (Gross Profit + D&A, or Operating Income + D&A)
@@ -356,11 +356,12 @@ If you have more than 15 metrics, you're probably including noise. Edit ruthless
 1. **Input all raw data first** - Complete the blue text before writing formulas
 2. **Add cell comments to ALL hard-coded inputs** - Right-click cell → Insert Comment → Document source OR assumption
 
-   **For sourced data, cite exactly where it came from:**
-   - Example: "Bloomberg Terminal - MSFT Equity DES, accessed 2024-10-02"
-   - Example: "Q4 2024 10-K filing, page 42, line item 'Total Revenue'"
-   - Example: "FactSet consensus estimate as of 2024-10-02"
-   - **Include hyperlinks when possible**: Right-click cell → Link → paste URL to SEC filing, data source, or report
+   **For sourced data, cite exactly where it came from. Use the `source`
+   strings from `summary.json` verbatim:**
+   - Example: "yfinance via OpenBB 2026-05-10"
+   - Example: "OpenBB Federal Reserve 10Y 2026-05-07"
+   - Example: "tools/defaults.py US default"
+   - **Hyperlinks** (optional): right-click cell → Link → paste URL to a verifying source if helpful
 
    **For assumptions, explain the reasoning:**
    - Example: "Assumed 15% EBITDA margin based on peer median, company does not disclose"
@@ -440,9 +441,9 @@ This helps answer: "Is our target company trading rich or cheap vs. peers?"
    - Lock in units and date references
 
 2. **Gather data** (60-90 minutes)
-   - Pull from primary sources (S&P Kensho MCP, FactSet MCP, Daloopa MCP if available; otherwise Bloomberg, SEC)
+   - Read each ticker's `./data/<TICKER_DIR>/summary.json` (run `python tools/fetch.py <PRIMARY> --peers PEER1,PEER2,...` ahead of time if missing)
    - Input all raw numbers in blue
-   - Document sources in notes section
+   - Document sources in notes section using the `source` strings from `summary.json` verbatim
 
 3. **Build formulas** (30 minutes)
    - Start with simple ratios (margins)

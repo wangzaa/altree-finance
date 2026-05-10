@@ -11,7 +11,11 @@ This skill creates institutional-quality DCF models for equity valuation followi
 
 ## Tools
 
-- Default to using all of the information provided by the user and MCP servers available for data sourcing.
+Read `DATA_CONVENTIONS.md` at the plugin root. All inputs come from the
+pre-fetched cache at `./data/<TICKER_DIR>/summary.json` (canonical) and
+`./data/<TICKER_DIR>/raw/` (vendor-native, for verification). MCP servers
+are intentionally not configured in this fork. Do not use web search for
+fundamentals.
 
 ## Critical Constraints - Read These First
 
@@ -92,12 +96,14 @@ This applies to every merged section header in the DCF (market data, scenario bl
 
 ### Step 1: Data Retrieval and Validation
 
-Fetch data from MCP servers, user provided data, and the web.
+Fetch data from the local cache populated by `tools/fetch.py`. Per
+`DATA_CONVENTIONS.md`, this fork does not use MCP servers or web search
+for fundamentals.
 
 **Data Sources Priority:**
-1. **MCP Servers** (if configured) - Structured financial data from providers like Daloopa
-2. **User-Provided Data** - Historical financials from their research
-3. **Web Search/Fetch** - Current prices, beta, debt and cash when needed
+1. **`./data/<TICKER_DIR>/summary.json`** — canonical pre-fetched values with `source` strings
+2. **`./data/<TICKER_DIR>/raw/`** — vendor-native files (OpenBB outputs) for verification or fields missing from summary
+3. **User-Provided Data** — when the user supplies values directly that override or supplement the cache
 
 **Validation Checklist:**
 - Verify net debt vs net cash (critical for valuation)
@@ -1195,14 +1201,13 @@ This approach centralizes scenario logic, making the model easier to audit and m
 ### At Start of DCF Build
 
 1. **Gather market data**:
-   - Check for available MCP servers for current market data
-   - Use web search/fetch for stock prices, beta, and other market metrics
-   - Request from user if specific data is needed
+   - Read `./data/<TICKER_DIR>/summary.json.marketData` for price, market cap, shares outstanding, beta
+   - If `summary.json` is missing or stale, instruct the user to run `python tools/fetch.py <TICKER>`
 
 2. **Gather historical financials**:
-   - Check for available MCP servers (Daloopa, etc.)
-   - Request from user if not available via MCP
-   - Manual extraction from 10-Ks if necessary
+   - Read `./data/<TICKER_DIR>/summary.json.{incomeStatement,balanceSheet,cashFlow}` for ~4 years of annual history
+   - Read `./data/<TICKER_DIR>/raw/openbb_*.json` for any field missing from `summary.json`
+   - Request from user if specific values need to be overridden
 
 3. **Begin model construction** using the DCF methodology detailed in this skill
 
@@ -1239,10 +1244,10 @@ This approach centralizes scenario logic, making the model easier to audit and m
 
 ### Available Data Sources
 
-- **MCP servers**: If configured (Daloopa for historical financials)
-- **Web search/fetch**: For current stock prices, beta, and market data
-- **User-provided data**: Historical financials, consensus estimates
-- **Manual extraction**: SEC EDGAR filings as fallback
+- **`./data/<TICKER_DIR>/summary.json`**: Canonical pre-fetched values (per `DATA_CONVENTIONS.md`)
+- **`./data/<TICKER_DIR>/raw/openbb_*.json`**: Raw OpenBB outputs for fields not surfaced in summary
+- **`./data/_shared/`**: Risk-free rates, FX, and macro context
+- **User-provided data**: Overrides via `--erp` / `--tax-rate` flags or direct supply during the conversation
 
 ## Final Output Checklist
 

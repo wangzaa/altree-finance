@@ -7,6 +7,15 @@ description: Complete, populate and fill out 3-statement financial model templat
 
 Complete and populate integrated financial model templates with proper linkages between Income Statement, Balance Sheet, and Cash Flow Statement.
 
+## ⚠️ Data sources (READ FIRST)
+
+Read `DATA_CONVENTIONS.md` at the plugin root. Historical actuals come from
+the pre-fetched cache at `./data/<TICKER_DIR>/summary.json`. MCP servers are
+intentionally not configured in this fork. Do not use web search for
+fundamentals.
+
+---
+
 ## ⚠️ CRITICAL PRINCIPLES — Read Before Populating Any Template
 
 **Environment — Office JS vs Python:**
