@@ -1,0 +1,10 @@
+{
+  "name": "altree-finance",
+  "description": "Single-plugin marketplace for the open-source-data fork of financial-analysis.",
+  "plugins": [
+    {
+      "name": "altree-finance",
+      "source": "."
+    }
+  ]
+}
