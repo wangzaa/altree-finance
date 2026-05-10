@@ -54,6 +54,44 @@ class TestParseTickerRegion:
     def test_india_bse(self):
         assert parse_ticker("RELIANCE.BO")["region"] == "ASIA_EM"
 
+    def test_china_shenzhen(self):
+        assert parse_ticker("300750.SZ")["region"] == "ASIA_EM"
+
+    def test_china_shanghai(self):
+        assert parse_ticker("600519.SS")["region"] == "ASIA_EM"
+
+    def test_korea_kospi(self):
+        assert parse_ticker("005930.KS")["region"] == "ASIA_DM"
+
+    def test_korea_kosdaq(self):
+        assert parse_ticker("035720.KQ")["region"] == "ASIA_DM"
+
+    def test_taiwan(self):
+        assert parse_ticker("2330.TW")["region"] == "ASIA_DM"
+
+    def test_new_zealand(self):
+        assert parse_ticker("FPH.NZ")["region"] == "ASIA_DM"
+
+    def test_germany_frankfurt(self):
+        assert parse_ticker("BMW.F")["region"] == "EUROZONE"
+
+    def test_belgium(self):
+        assert parse_ticker("AB.BR")["region"] == "EUROZONE"
+
+    def test_switzerland(self):
+        # Switzerland is non-Eurozone but mapped to EUROZONE defaults
+        assert parse_ticker("NESN.SW")["region"] == "EUROZONE"
+
+    def test_sweden(self):
+        assert parse_ticker("VOLV-B.ST")["region"] == "EUROZONE"
+
+    def test_canada(self):
+        # Toronto mapped to OTHER (defaults are closer than US tax)
+        assert parse_ticker("RY.TO")["region"] == "OTHER"
+
+    def test_brazil(self):
+        assert parse_ticker("VALE3.SA")["region"] == "OTHER"
+
     def test_unknown_suffix_falls_back_to_other(self):
         assert parse_ticker("FOO.XX")["region"] == "OTHER"
 

@@ -37,18 +37,38 @@ Used as our primary equity-data and FX source via OpenBB
 
 ## Global ticker conventions
 
-Yahoo uses suffixes for non-US exchanges. Examples:
+Yahoo uses suffixes for non-US exchanges. Selected examples:
 
-| Region   | Suffix | Example      |
-|----------|--------|--------------|
-| US       | (none) | `AAPL`       |
-| UK (LSE) | `.L`   | `BARC.L`     |
-| France   | `.PA`  | `MC.PA`      |
-| Germany  | `.DE`  | `SAP.DE`     |
-| Japan    | `.T`   | `7203.T`     |
-| Hong Kong| `.HK`  | `0700.HK`    |
-| Australia| `.AX`  | `BHP.AX`     |
-| India NSE| `.NS`  | `RELIANCE.NS`|
+| Country / Market         | Suffix(es)      | Example       | Region     |
+|--------------------------|-----------------|---------------|------------|
+| US                       | (none)          | `AAPL`        | US         |
+| UK (LSE)                 | `.L`, `.IL`     | `BARC.L`      | UK         |
+| France (Euronext Paris)  | `.PA`           | `MC.PA`       | EUROZONE   |
+| Germany (Xetra/Frankfurt)| `.DE`, `.F`     | `SAP.DE`      | EUROZONE   |
+| Netherlands              | `.AS`           | `ASML.AS`     | EUROZONE   |
+| Italy                    | `.MI`           | `ENI.MI`      | EUROZONE   |
+| Spain                    | `.MC`           | `ITX.MC`      | EUROZONE   |
+| Belgium                  | `.BR`           | `AB.BR`       | EUROZONE   |
+| Switzerland              | `.SW`           | `NESN.SW`     | EUROZONE\* |
+| Sweden                   | `.ST`           | `VOLV-B.ST`   | EUROZONE\* |
+| Norway / Denmark / Finland | `.OL`/`.CO`/`.HE` | `EQNR.OL` | EUROZONE\* |
+| Japan                    | `.T`            | `7203.T`      | JAPAN      |
+| Hong Kong                | `.HK`           | `0700.HK`     | ASIA_DM    |
+| Australia / NZ           | `.AX` / `.NZ`   | `BHP.AX`      | ASIA_DM    |
+| Singapore                | `.SI`           | `D05.SI`      | ASIA_DM    |
+| Korea (KOSPI/KOSDAQ)     | `.KS`, `.KQ`    | `005930.KS`   | ASIA_DM    |
+| Taiwan                   | `.TW`, `.TWO`   | `2330.TW`     | ASIA_DM    |
+| China (Shanghai/Shenzhen)| `.SS`, `.SZ`    | `300750.SZ`   | ASIA_EM    |
+| India (NSE/BSE)          | `.NS`, `.BO`    | `RELIANCE.NS` | ASIA_EM    |
+| Indonesia / Thailand / Malaysia | `.JK`/`.BK`/`.KL` | `BBCA.JK` | ASIA_EM |
+| Canada                   | `.TO`, `.V`     | `RY.TO`       | OTHER      |
+| Brazil / Mexico          | `.SA` / `.MX`   | `VALE3.SA`    | OTHER      |
+| South Africa / Saudi / Turkey | `.JO`/`.SR`/`.IS` | `NPN.JO` | OTHER     |
+
+\* Non-Eurozone developed Europe (Switzerland, Nordic countries) is mapped
+to `EUROZONE` defaults as the closest approximation; tax rates differ
+materially (e.g. Switzerland ~14-21% vs. EUROZONE default 25%) — override
+with `--tax-rate` when accuracy matters.
 
 `tools/tickers.py:REGION_BY_SUFFIX` is the full mapping.
 
