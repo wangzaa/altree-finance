@@ -1,0 +1,22 @@
+[
+  {
+    "period_ending": "2024-09-28",
+    "fiscal_year": null,
+    "fiscal_period": null,
+    "total_revenue": 391035000000,
+    "gross_profit": 180683000000,
+    "operating_income": 123216000000,
+    "ebitda": 134661000000,
+    "net_income": 93736000000
+  },
+  {
+    "period_ending": "2023-09-30",
+    "fiscal_year": null,
+    "fiscal_period": null,
+    "total_revenue": 383285000000,
+    "gross_profit": 169148000000,
+    "operating_income": 114301000000,
+    "ebitda": 125820000000,
+    "net_income": 96995000000
+  }
+]

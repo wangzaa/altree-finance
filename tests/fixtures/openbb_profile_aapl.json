@@ -1,0 +1,15 @@
+{
+  "symbol": "AAPL",
+  "name": "Apple Inc.",
+  "sector": "Technology",
+  "industry": null,
+  "industry_group": null,
+  "industry_category": "Consumer Electronics",
+  "currency": "USD",
+  "market_cap": 2900000000000,
+  "shares_outstanding": 15500000000,
+  "beta": 1.27,
+  "dividend_yield": 0.48,
+  "long_description": "Apple Inc. designs, manufactures, and markets smartphones, personal computers, tablets, wearables, and accessories worldwide.",
+  "short_description": null
+}

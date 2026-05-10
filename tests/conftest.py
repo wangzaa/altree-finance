@@ -6,14 +6,33 @@ import pytest
 FIXTURE_DIR = Path(__file__).parent / "fixtures"
 
 
-@pytest.fixture
-def yfinance_info_aapl():
-    return json.loads((FIXTURE_DIR / "yfinance_info_aapl.json").read_text())
+def _load(name: str):
+    return json.loads((FIXTURE_DIR / name).read_text())
 
 
 @pytest.fixture
-def yfinance_financials_aapl():
-    return json.loads((FIXTURE_DIR / "yfinance_financials_aapl.json").read_text())
+def openbb_profile_aapl():
+    return _load("openbb_profile_aapl.json")
+
+
+@pytest.fixture
+def openbb_quote_aapl():
+    return _load("openbb_quote_aapl.json")
+
+
+@pytest.fixture
+def openbb_income_aapl():
+    return _load("openbb_income_aapl.json")
+
+
+@pytest.fixture
+def openbb_balance_aapl():
+    return _load("openbb_balance_aapl.json")
+
+
+@pytest.fixture
+def openbb_cash_aapl():
+    return _load("openbb_cash_aapl.json")
 
 
 @pytest.fixture

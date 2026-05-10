@@ -1,28 +1,34 @@
-"""Build a canonical summary.json dict from raw OpenBB / yfinance outputs.
+"""Build a canonical summary.json dict from OpenBB outputs.
 
 Pure transformation. No I/O except the small CSV read for risk-free rate
 (deliberately co-located here so the function is self-contained for testing).
 
-The key contract: every numeric leaf field that has an external source carries
-a sibling ``source`` string, used VERBATIM by skills as cell-comment text.
+Inputs are OpenBB result dicts (snake_case keys) from these calls:
+  - obb.equity.profile(symbol, provider="yfinance")
+  - obb.equity.price.quote(symbol, provider="yfinance")
+  - obb.equity.fundamental.income(symbol, provider="yfinance", ...)
+  - obb.equity.fundamental.balance(symbol, provider="yfinance", ...)
+  - obb.equity.fundamental.cash(symbol, provider="yfinance", ...)
+
+The contract: every numeric leaf field with an external source carries a
+sibling ``source`` string, used VERBATIM by skills as cell-comment text.
 """
 import csv
 from pathlib import Path
-from typing import Any
 
 from tools.tickers import parse_ticker
 from tools.defaults import get_defaults
 
 
-# Map region → human-readable risk-free-rate source label
+# Region → human-readable risk-free-rate source label
 RISK_FREE_SOURCE_LABEL = {
-    "US":       "OpenBB US Treasury 10Y",
-    "UK":       "OpenBB BoE 10Y",
-    "EUROZONE": "OpenBB ECB 10Y benchmark",
-    "JAPAN":    "OpenBB BoJ 10Y JGB",
-    "ASIA_DM":  "OpenBB OECD/BIS regional 10Y",
-    "ASIA_EM":  "OpenBB OECD/BIS regional 10Y",
-    "OTHER":    "OpenBB OECD/BIS regional 10Y",
+    "US":       "OpenBB Federal Reserve 10Y",
+    "UK":       "OpenBB econdb UK 10Y",
+    "EUROZONE": "OpenBB econdb ECB spot 10Y",
+    "JAPAN":    "OpenBB econdb Japan 10Y",
+    "ASIA_DM":  "OpenBB econdb regional 10Y",
+    "ASIA_EM":  "OpenBB econdb regional 10Y",
+    "OTHER":    "OpenBB econdb regional 10Y",
 }
 
 
@@ -38,91 +44,134 @@ def latest_rate_from_csv(csv_path: Path) -> tuple[float, str]:
     return rate, date
 
 
-def _income_statement(financials: dict, source_label: str) -> dict:
+def _fiscal_year_from_period(period_ending: str | None, explicit: int | None) -> int | None:
+    """yfinance via OpenBB returns fiscal_year=None. Derive from period_ending."""
+    if explicit is not None:
+        return int(explicit)
+    if period_ending and isinstance(period_ending, str) and len(period_ending) >= 4:
+        try:
+            return int(period_ending[:4])
+        except ValueError:
+            return None
+    return None
+
+
+def _income_statement(income_rows: list[dict], currency: str, source_label: str) -> dict:
     periods = []
-    for row in financials.get("income_statement", []):
+    for row in income_rows:
+        period_ending = row.get("period_ending")
+        if hasattr(period_ending, "isoformat"):
+            period_ending = period_ending.isoformat()
         periods.append({
-            "fiscalYear":      row["fiscal_year"],
-            "fiscalPeriod":    row.get("fiscal_period", "FY"),
-            "endDate":         row["period_ending"],
-            "revenue":         row["total_revenue"],
+            "fiscalYear":      _fiscal_year_from_period(period_ending, row.get("fiscal_year")),
+            "fiscalPeriod":    row.get("fiscal_period") or "FY",
+            "endDate":         period_ending,
+            "revenue":         row.get("total_revenue"),
             "grossProfit":     row.get("gross_profit"),
             "operatingIncome": row.get("operating_income"),
             "ebitda":          row.get("ebitda"),
             "netIncome":       row.get("net_income"),
             "source":          source_label,
         })
-    currency = "USD"  # default; overridden by caller if known
     return {"currency": currency, "unit": 1, "periods": periods}
 
 
-def _balance_sheet(financials: dict, source_label: str) -> dict:
+def _balance_sheet(balance_rows: list[dict], currency: str, source_label: str) -> dict:
     periods = []
-    for row in financials.get("balance_sheet", []):
+    for row in balance_rows:
+        period_ending = row.get("period_ending")
+        if hasattr(period_ending, "isoformat"):
+            period_ending = period_ending.isoformat()
         periods.append({
-            "fiscalYear":         row["fiscal_year"],
-            "endDate":            row["period_ending"],
+            "fiscalYear":         _fiscal_year_from_period(period_ending, row.get("fiscal_year")),
+            "endDate":            period_ending,
             "totalAssets":        row.get("total_assets"),
-            "totalLiabilities":   row.get("total_liabilities"),
-            "totalEquity":        row.get("total_equity"),
-            "cashAndEquivalents": row.get("cash_and_equivalents"),
+            "totalLiabilities":   row.get("total_liabilities_net_minority_interest"),
+            "totalEquity":        row.get("total_common_equity"),
+            "cashAndEquivalents": row.get("cash_and_cash_equivalents"),
             "totalDebt":          row.get("total_debt"),
             "source":             source_label,
         })
-    return {"currency": "USD", "periods": periods}
+    return {"currency": currency, "periods": periods}
 
 
-def _cash_flow(financials: dict, source_label: str) -> dict:
+def _cash_flow(cash_rows: list[dict], currency: str, source_label: str) -> dict:
     periods = []
-    for row in financials.get("cash_flow", []):
+    for row in cash_rows:
+        period_ending = row.get("period_ending")
+        if hasattr(period_ending, "isoformat"):
+            period_ending = period_ending.isoformat()
         periods.append({
-            "fiscalYear":         row["fiscal_year"],
-            "endDate":            row["period_ending"],
+            "fiscalYear":         _fiscal_year_from_period(period_ending, row.get("fiscal_year")),
+            "endDate":            period_ending,
             "operatingCashFlow":  row.get("operating_cash_flow"),
-            "capex":              row.get("capital_expenditures"),
+            "capex":              row.get("capital_expenditure"),
             "fcf":                row.get("free_cash_flow"),
             "source":             source_label,
         })
-    return {"currency": "USD", "periods": periods}
+    return {"currency": currency, "periods": periods}
 
 
-def _trading_multiples(info: dict, financials: dict) -> dict:
-    market_cap = info.get("marketCap")
-    bs_latest = (financials.get("balance_sheet") or [{}])[0]
-    total_debt = bs_latest.get("total_debt", 0) or 0
-    cash = bs_latest.get("cash_and_equivalents", 0) or 0
+def _trading_multiples(profile: dict, quote: dict, balance_rows: list[dict], income_rows: list[dict]) -> dict:
+    market_cap = profile.get("market_cap")
+    bs_latest = balance_rows[0] if balance_rows else {}
+    total_debt = bs_latest.get("total_debt") or 0
+    cash = bs_latest.get("cash_and_cash_equivalents") or 0
     ev = market_cap + total_debt - cash if market_cap is not None else None
 
-    is_latest = (financials.get("income_statement") or [{}])[0]
+    is_latest = income_rows[0] if income_rows else {}
     revenue = is_latest.get("total_revenue")
     ebitda = is_latest.get("ebitda")
+
+    price_date = quote.get("last_timestamp") if quote else None
+    if hasattr(price_date, "isoformat"):
+        price_date = price_date.isoformat()
 
     return {
         "ev":                 ev,
         "evToRevenue_LTM":    (ev / revenue) if (ev is not None and revenue) else None,
         "evToEbitda_LTM":     (ev / ebitda)  if (ev is not None and ebitda)  else None,
-        "peRatio":            info.get("trailingPE"),
-        "asOfPriceDate":      None,
-        "source":             "derived in normalize.py from yfinance financials + market data",
+        "peRatio":            (quote or {}).get("pe_ratio"),
+        "asOfPriceDate":      price_date,
+        "source":             "derived in normalize.py from OpenBB equity outputs",
     }
 
 
 def build_summary(
     ticker: str,
-    yfinance_info: dict,
-    yfinance_financials: dict,
+    profile: dict,
+    quote: dict,
+    income: list[dict],
+    balance: list[dict],
+    cash: list[dict],
     rate_csv_path: Path,
     fetched_at: str,
+    peers: list[str] | None = None,
     as_of: str | None = None,
 ) -> dict:
-    """Build the canonical summary.json structure."""
+    """Build the canonical summary.json structure from OpenBB outputs."""
     parsed = parse_ticker(ticker)
     region = parsed["region"]
     defaults = get_defaults(region)
 
     rate_value, rate_date = latest_rate_from_csv(rate_csv_path)
-    rf_source_label = f"{RISK_FREE_SOURCE_LABEL[region]} {rate_date}"
+    rf_source = f"{RISK_FREE_SOURCE_LABEL[region]} {rate_date}"
     yf_source = f"yfinance via OpenBB {fetched_at[:10]}"
+
+    currency = profile.get("currency") or "USD"
+    # yfinance via OpenBB returns industry=None; the human-readable value
+    # is in industry_category. Fall back across the chain.
+    industry = (
+        profile.get("industry")
+        or profile.get("industry_group")
+        or profile.get("industry_category")
+    )
+
+    quote = quote or {}
+    price = quote.get("last_price")
+    price_date = quote.get("last_timestamp")
+    if hasattr(price_date, "isoformat"):
+        price_date = price_date.isoformat()
 
     return {
         "ticker":         ticker,
@@ -131,29 +180,29 @@ def build_summary(
         "asOf":           as_of or fetched_at[:10],
         "fetchedAt":      fetched_at,
         "company": {
-            "name":              yfinance_info.get("longName"),
-            "sector":            yfinance_info.get("sector"),
-            "industry":          yfinance_info.get("industry"),
-            "description_short": yfinance_info.get("longBusinessSummary"),
+            "name":              profile.get("name"),
+            "sector":            profile.get("sector"),
+            "industry":          industry,
+            "description_short": profile.get("long_description") or profile.get("short_description"),
             "narrative_path":    "raw/wikipedia_summary.json",
         },
         "marketData": {
-            "currency":          yfinance_info.get("currency"),
-            "price":             yfinance_info.get("regularMarketPrice"),
-            "priceDate":         None,
-            "sharesOutstanding": yfinance_info.get("sharesOutstanding"),
-            "marketCap":         yfinance_info.get("marketCap"),
-            "beta_yfinance":     yfinance_info.get("beta"),
-            "dividendYield":     yfinance_info.get("dividendYield"),
+            "currency":          currency,
+            "price":             price,
+            "priceDate":         price_date,
+            "sharesOutstanding": profile.get("shares_outstanding"),
+            "marketCap":         profile.get("market_cap"),
+            "beta_yfinance":     profile.get("beta"),
+            "dividendYield":     profile.get("dividend_yield"),
             "source":            yf_source,
         },
-        "incomeStatement": _income_statement(yfinance_financials, yf_source),
-        "balanceSheet":    _balance_sheet(yfinance_financials, yf_source),
-        "cashFlow":        _cash_flow(yfinance_financials, yf_source),
+        "incomeStatement": _income_statement(income, currency, yf_source),
+        "balanceSheet":    _balance_sheet(balance, currency, yf_source),
+        "cashFlow":        _cash_flow(cash, currency, yf_source),
         "wacc_inputs": {
             "riskFreeRate": {
                 "value":  rate_value,
-                "source": rf_source_label,
+                "source": rf_source,
             },
             "equityRiskPremium": {
                 "value":  defaults["equityRiskPremium"],
@@ -166,15 +215,15 @@ def build_summary(
             "industryBeta":    None,
             "marginalTaxRate": defaults["marginalTaxRate"],
         },
-        "tradingMultiples": _trading_multiples(yfinance_info, yfinance_financials),
+        "tradingMultiples": _trading_multiples(profile, quote, balance, income),
         "peers": {
-            "suggested_yfinance": [],
+            "suggested_yfinance": peers or [],
             "selected":           [],
         },
         "fx": {
-            "reportingCurrency": yfinance_info.get("currency"),
+            "reportingCurrency": currency,
             "asOfDate":          None,
-            "ratesToUSD":        {"value": None, "source": "ECB via OpenBB (populated by shared.py)"},
-            "ratesToEUR":        {"value": None, "source": "ECB via OpenBB (populated by shared.py)"},
+            "ratesToUSD":        {"value": None, "source": "OpenBB→yfinance FX (populated by shared.py)"},
+            "ratesToEUR":        {"value": None, "source": "OpenBB→yfinance FX (populated by shared.py)"},
         },
     }
