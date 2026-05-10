@@ -1,0 +1,18 @@
+altree-finance
+Copyright 2026 andrew@altree.co
+
+This product is a fork of:
+  financial-analysis (vertical plugin)
+  Copyright Anthropic, PBC.
+  Licensed under the Apache License, Version 2.0.
+  Source: https://github.com/anthropics/financial-services
+
+Modifications:
+  - Replaced 11 paid/enterprise MCP data sources with a pre-fetched local
+    cache populated from open-source data via OpenBB Platform (yfinance for
+    equities, Federal Reserve / econdb for rates, OECD for macro).
+  - Added DATA_CONVENTIONS.md and patched the four primary skills/commands
+    (dcf, comps, 3-statement-model, competitive-analysis) to read from the
+    local cache instead of MCPs.
+  - Added a Python tools/ directory for the data-fetch workflow.
+  - Removed support for /lbo; left /debug-model and /ppt-template unchanged.
