@@ -181,13 +181,17 @@ def cmd_fetch(args: argparse.Namespace, data_root: Path) -> int:
             peers=manual_peers,
         )
 
-        # CLI overrides
-        if args.erp is not None:
+        # CLI overrides — apply ONLY to the primary ticker (peers retain
+        # their region defaults so cross-jurisdiction comp sets get the
+        # right per-country WACC inputs). To override a peer's defaults,
+        # re-fetch that peer separately as the primary with --erp/--tax-rate.
+        is_primary = tkr == args.ticker
+        if is_primary and args.erp is not None:
             summary["wacc_inputs"]["equityRiskPremium"] = {
                 "value":  args.erp,
                 "source": f"CLI override (--erp {args.erp})",
             }
-        if args.tax_rate is not None:
+        if is_primary and args.tax_rate is not None:
             summary["wacc_inputs"]["marginalTaxRate"] = args.tax_rate
 
         (tdir / "summary.json").write_text(json.dumps(_to_jsonable(summary), indent=2))

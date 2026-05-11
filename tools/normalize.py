@@ -152,7 +152,7 @@ def build_summary(
     """Build the canonical summary.json structure from OpenBB outputs."""
     parsed = parse_ticker(ticker)
     region = parsed["region"]
-    defaults = get_defaults(region)
+    defaults = get_defaults(region, suffix=parsed["suffix"])
 
     rate_value, rate_date = latest_rate_from_csv(rate_csv_path)
     rf_source = f"{RISK_FREE_SOURCE_LABEL[region]} {rate_date}"
