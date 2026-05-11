@@ -36,10 +36,33 @@ Every numeric field in `summary.json` carries a `source` string. Use it
 
 ## Cross-currency analysis
 
-For comp sets or models spanning multiple currencies, use FX rates from
-`./data/_shared/fx/yfinance_fx.csv`. Rates are USD-per-unit (1 EUR ≈ 1.18 USD,
-1 JPY ≈ 0.0064 USD). Convert non-USD figures to USD by multiplying by the
-appropriate rate.
+For `/comps`: **multiples only.** Comp tables report valuation multiples
+(EV/Rev, EV/EBITDA, P/E, etc.) and operating ratios, which are
+dimensionless. Do NOT convert market cap, revenue, or other absolute
+figures across currencies. Absolutes are shown in each company's own
+reporting currency in supporting tabs. See
+`skills/comps-analysis/SKILL.md` for the mandatory comp table policy
+and `FORMATTING_CONVENTIONS.md` for Notes & Methodology requirements.
+
+For other models that genuinely require FX conversion (e.g. consolidating
+multi-currency cash flows in a single DCF, or expressing a peer median in
+the primary company's currency for a footnote), use FX rates from
+`./data/_shared/fx/yfinance_fx.csv`. Rates are USD-per-unit (1 EUR ≈
+1.18 USD, 1 JPY ≈ 0.0064 USD). Convert non-USD figures to USD by
+multiplying by the appropriate rate. Document the conversion path used
+in Notes & Methodology.
+
+### Known currency idiosyncrasies (record in Notes & Methodology)
+
+- **`BA.L` (BAE Systems)**: `marketData.currency` is `"GBp"` (pence)
+  but `marketCap` is denominated in **GBP**, NOT pence. Do not multiply
+  market cap by 100. Yahoo / yfinance idiosyncrasy.
+- **`SAAB-B.ST` (SEK)** and **`KOG.OL` (NOK)**: reporting currencies
+  absent from `_shared/fx/yfinance_fx.csv`. Stick to multiples-only when
+  including these in a comp set; do not attempt SEK/NOK conversion
+  without first extending `tools/shared.py:FX_PAIRS`.
+- **Other UK LSE tickers**: many report price in pence. Check
+  `marketData.currency` for each before any conversion.
 
 ## Excel output formatting
 

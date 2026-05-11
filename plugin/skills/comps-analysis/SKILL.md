@@ -39,6 +39,26 @@ Read `FORMATTING_CONVENTIONS.md` at the plugin root. Default font is
 **Arial 10pt** for every cell — this overrides upstream's Times New Roman
 "Suggested Font & Typography" defaults.
 
+## ⚠️ Comp table currency policy (MANDATORY)
+
+**Multiples only.** The comp table reports valuation MULTIPLES
+(EV/Revenue, EV/EBITDA, EV/EBIT, P/E, P/B, etc.) and operating ratios
+(margins, growth rates). Multiples are dimensionless and compare directly
+across currencies. **Do NOT convert market cap, revenue, EBITDA, or other
+absolute figures across currencies.** Such conversions introduce error
+without commensurate analytical benefit and are forbidden in this fork.
+
+Each company's absolutes (market cap, revenue, EBITDA, etc.) may be shown
+in supporting tabs in their **own reporting currency** for context, with
+the currency clearly labeled in the column header (e.g. "Market Cap (EUR)",
+"Market Cap (GBP)", "Revenue (SEK)"). No conversion. No mixing.
+
+All currency idiosyncrasies (BA.L's GBp-vs-GBP quirk, Norwegian and
+Swedish reporting currencies absent from `_shared/fx/`, etc.) MUST be
+documented in the **Notes & Methodology** section per
+`FORMATTING_CONVENTIONS.md`. The reader should be able to understand the
+currency policy without external context.
+
 ---
 
 ## Overview
