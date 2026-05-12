@@ -46,8 +46,19 @@ ECONDB_COUNTRY = {
     "JAPAN":    "japan",
 }
 
-# FX pairs we care about (vs USD) — yfinance Yahoo symbol form
-FX_PAIRS = ["EURUSD=X", "GBPUSD=X", "JPYUSD=X", "AUDUSD=X", "CADUSD=X", "CHFUSD=X"]
+# FX pairs we care about (vs USD) — yfinance Yahoo symbol form.
+# Yahoo's CCYUSD=X syntax returns USD-per-unit of the base currency
+# (e.g. EURUSD=X close=1.18 means 1 EUR = 1.18 USD).
+FX_PAIRS = [
+    "EURUSD=X",  # Eurozone
+    "GBPUSD=X",  # UK
+    "JPYUSD=X",  # Japan
+    "AUDUSD=X",  # Australia
+    "CADUSD=X",  # Canada
+    "CHFUSD=X",  # Switzerland
+    "KRWUSD=X",  # Korea — KOSPI / KOSDAQ tickers
+    "TWDUSD=X",  # Taiwan — TWSE / Taipei OTC tickers
+]
 
 
 def is_fresh(stamp_path: Path, max_age_days: int) -> bool:
@@ -146,14 +157,32 @@ def refresh_fx(shared_root: Path, force: bool = False) -> None:
     for pair in FX_PAIRS:
         try:
             data = obb.currency.price.historical(symbol=pair, provider="yfinance")
-            if data.results:
-                latest = data.results[-1]
-                # pair like 'EURUSD=X' returns USD per 1 unit of the base currency.
-                # e.g. EURUSD=X close=1.18 means 1 EUR = 1.18 USD.
-                ccy = pair[:3]
-                usd_per_unit = float(latest.close) if latest.close else None
-                if usd_per_unit:
-                    out_rows.append((str(latest.date), ccy, usd_per_unit))
+            if not data.results:
+                continue
+            # pair like 'EURUSD=X' returns USD per 1 unit of the base currency.
+            # e.g. EURUSD=X close=1.18 means 1 EUR = 1.18 USD.
+            # Walk from the newest bar backwards to skip NaN closes
+            # (some pairs have data gaps on weekends/holidays).
+            ccy = pair[:3]
+            chosen = None
+            for r in reversed(data.results):
+                c = r.close
+                if c is None:
+                    continue
+                try:
+                    cf = float(c)
+                except (TypeError, ValueError):
+                    continue
+                # numpy NaN slips past float() — explicit isnan check
+                if cf != cf:  # NaN != NaN
+                    continue
+                if cf > 0:
+                    chosen = (str(r.date), ccy, cf)
+                    break
+            if chosen:
+                out_rows.append(chosen)
+            else:
+                print(f"warn: FX pair {pair} had no valid bar")
         except Exception as e:
             print(f"warn: FX refresh failed for {pair}: {e}")
 
